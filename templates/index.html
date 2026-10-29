@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CouponStudio | Version 2</title>
+    <title>CouponStudio | Version 3</title>
 
     <style>
         * {
@@ -190,11 +190,6 @@
             display: none;
         }
 
-        .empty {
-            color: #737b91;
-            font-family: "Segoe UI", Arial, sans-serif;
-        }
-
         footer {
             text-align: center;
             padding: 25px 15px;
@@ -226,13 +221,13 @@
 <body>
 <header>
     <div class="brand">Coupon<span>Studio</span></div>
-    <div class="version">VERSION 2</div>
+    <div class="version">VERSION 3</div>
 </header>
 
 <main>
     <h1>Coupon Management</h1>
     <p class="subtitle">
-        Create, validate and apply coupons with enhanced eligibility rules.
+        Create, validate and apply coupons with usage tracking.
     </p>
 
     <section class="features">
@@ -242,13 +237,13 @@
         </div>
 
         <div class="feature">
-            <strong>◷ Expiry Validation</strong>
-            <small>Reject coupons whose expiry date has passed.</small>
+            <strong>◷ Smart Validation</strong>
+            <small>Check expiry dates and minimum purchase requirements.</small>
         </div>
 
         <div class="feature">
-            <strong>₹ Purchase Rules</strong>
-            <small>Enforce minimum purchase requirements.</small>
+            <strong>✓ Usage Tracking</strong>
+            <small>Limit coupon uses and track remaining availability.</small>
         </div>
     </section>
 
@@ -256,7 +251,7 @@
         <div class="card">
             <h2>＋ Create Coupon</h2>
             <p class="hint">
-                Define the discount, minimum order amount and expiry date.
+                Configure discount, expiry, minimum purchase and usage limit.
             </p>
 
             <form id="createForm">
@@ -296,6 +291,16 @@
                     type="date"
                 >
 
+                <label for="usageLimit">Maximum coupon uses</label>
+                <input
+                    id="usageLimit"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value="10"
+                    required
+                >
+
                 <button class="primary" type="submit">
                     Create Coupon
                 </button>
@@ -305,7 +310,7 @@
         <div class="card">
             <h2>₹ Apply Coupon</h2>
             <p class="hint">
-                Validate coupon eligibility and calculate the final price.
+                Calculate the discount and check coupon eligibility.
             </p>
 
             <label for="applyCode">Coupon code</label>
@@ -345,13 +350,12 @@
             Coupon creation, validation and application responses appear here.
         </p>
 
-        <div id="result" role="status" aria-live="polite">
-        </div>
+        <div id="result" role="status" aria-live="polite"></div>
     </section>
 </main>
 
 <footer>
-    CouponStudio · Version 2 · Flask Coupon Management System
+    CouponStudio · Version 3 · Coupon Usage Management
 </footer>
 
 <script>
@@ -359,7 +363,6 @@
 
     async function sendRequest(url, options = {}) {
         result.textContent = "Processing request...";
-        result.className = "";
 
         try {
             const response = await fetch(url, options);
@@ -371,7 +374,7 @@
             return { ok: response.ok, data: data };
         } catch (error) {
             result.textContent =
-                "Unable to contact Flask. Make sure the application is running.";
+                "Unable to contact Flask. Check whether the application is running.";
             result.style.background = "#fff1f2";
 
             return { ok: false, data: null };
@@ -393,6 +396,10 @@
             );
             const expiry = document.getElementById("expiry").value;
 
+            const usageLimit = Number(
+                document.getElementById("usageLimit").value
+            );
+
             if (!code) {
                 result.textContent = "Enter a coupon code.";
                 return;
@@ -411,11 +418,18 @@
                 return;
             }
 
+            if (!Number.isInteger(usageLimit) || usageLimit < 1) {
+                result.textContent =
+                    "Maximum coupon uses must be a positive whole number.";
+                return;
+            }
+
             const payload = {
                 code: code,
                 discount: discount,
                 minimum_amount: minimum,
-                expiry: expiry || null
+                expiry: expiry || null,
+                usage_limit: usageLimit
             };
 
             await sendRequest("/coupons", {

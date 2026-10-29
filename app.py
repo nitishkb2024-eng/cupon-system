@@ -22,6 +22,9 @@ def validate_rules(coupon, amount=None):
         if expiry_date < date.today():
             return "Coupon has expired"
 
+    if coupon["used"] >= coupon["usage_limit"]:
+        return "Coupon usage limit reached"
+
     if amount is not None and amount < coupon["minimum_amount"]:
         return "Purchase amount is below the minimum required"
 
@@ -52,8 +55,9 @@ def add_coupon():
     try:
         discount = float(data.get("discount", 0))
         minimum = float(data.get("minimum_amount", 0))
+        usage_limit = int(data.get("usage_limit", 10))
     except (ValueError, TypeError):
-        return jsonify({"error": "Numeric values are invalid"}), 400
+        return jsonify({"error": "Invalid numeric value"}), 400
 
     expiry = data.get("expiry") or None
 
@@ -61,10 +65,13 @@ def add_coupon():
         return jsonify({"error": "Coupon code is required"}), 400
 
     if not 0 < discount <= 100:
-        return jsonify({"error": "Discount must be between 0 and 100"}), 400
+        return jsonify({"error": "Discount must be greater than 0 and at most 100"}), 400
 
     if minimum < 0:
         return jsonify({"error": "Minimum amount cannot be negative"}), 400
+
+    if usage_limit < 1:
+        return jsonify({"error": "Usage limit must be at least 1"}), 400
 
     if code in coupons:
         return jsonify({"error": "Coupon already exists"}), 409
@@ -79,7 +86,9 @@ def add_coupon():
         "discount": discount,
         "minimum_amount": minimum,
         "expiry": expiry,
-        "active": True
+        "active": True,
+        "usage_limit": usage_limit,
+        "used": 0
     }
 
     return jsonify({
@@ -90,7 +99,8 @@ def add_coupon():
 
 @app.get("/coupons/<code>/validate")
 def validate_coupon(code):
-    coupon = coupons.get(code.strip().upper())
+    code = code.strip().upper()
+    coupon = coupons.get(code)
     error = validate_rules(coupon)
 
     if error:
@@ -99,10 +109,11 @@ def validate_coupon(code):
     return jsonify({
         "valid": True,
         "message": "Coupon is valid",
-        "code": code.strip().upper(),
+        "code": code,
         "discount": coupon["discount"],
         "minimum_amount": coupon["minimum_amount"],
-        "expiry": coupon["expiry"]
+        "expiry": coupon["expiry"],
+        "remaining_uses": coupon["usage_limit"] - coupon["used"]
     })
 
 
@@ -110,7 +121,6 @@ def validate_coupon(code):
 def apply_coupon(code):
     code = code.strip().upper()
     coupon = coupons.get(code)
-
     data = request.get_json(silent=True) or {}
 
     try:
@@ -127,6 +137,10 @@ def apply_coupon(code):
         return jsonify({"error": error}), 400
 
     discount_amount = round(amount * coupon["discount"] / 100, 2)
+    final_amount = round(amount - discount_amount, 2)
+
+    # Count a use only after a successful application.
+    coupon["used"] += 1
 
     return jsonify({
         "message": "Coupon applied successfully",
@@ -134,7 +148,9 @@ def apply_coupon(code):
         "original_amount": round(amount, 2),
         "discount_percentage": coupon["discount"],
         "discount_amount": discount_amount,
-        "final_amount": round(amount - discount_amount, 2)
+        "final_amount": final_amount,
+        "used": coupon["used"],
+        "remaining_uses": coupon["usage_limit"] - coupon["used"]
     })
 
 
@@ -143,7 +159,7 @@ def health():
     return jsonify({
         "status": "healthy",
         "application": "Coupon System",
-        "version": "v2"
+        "version": "v3"
     })
 
 

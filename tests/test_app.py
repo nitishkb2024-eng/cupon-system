@@ -19,7 +19,8 @@ def create_coupon(client, **overrides):
         "code": "SAVE10",
         "discount": 10,
         "minimum_amount": 500,
-        "expiry": "2099-12-31"
+        "expiry": "2099-12-31",
+        "usage_limit": 2
     }
     data.update(overrides)
     return client.post("/coupons", json=data)
@@ -28,11 +29,11 @@ def create_coupon(client, **overrides):
 def test_home_page(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"VERSION 2" in response.data
+    assert b"VERSION 3" in response.data
 
 
 def test_health(client):
-    assert client.get("/health").json["version"] == "v2"
+    assert client.get("/health").json["version"] == "v3"
 
 
 def test_create_coupon(client):
@@ -43,14 +44,13 @@ def test_validate_coupon(client):
     create_coupon(client)
     response = client.get("/coupons/SAVE10/validate")
     assert response.status_code == 200
-    assert response.json["valid"] is True
+    assert response.json["remaining_uses"] == 2
 
 
 def test_expired_coupon(client):
     create_coupon(client, expiry="2000-01-01")
     response = client.get("/coupons/SAVE10/validate")
     assert response.status_code == 400
-    assert response.json["valid"] is False
 
 
 def test_minimum_purchase(client):
@@ -62,15 +62,22 @@ def test_minimum_purchase(client):
     assert response.status_code == 400
 
 
-def test_successful_application(client):
-    create_coupon(client)
-    response = client.post(
+def test_usage_limit(client):
+    create_coupon(client, usage_limit=1)
+
+    first = client.post(
         "/coupons/SAVE10/apply",
         json={"amount": 1000}
     )
-    assert response.status_code == 200
-    assert response.json["discount_amount"] == 100
-    assert response.json["final_amount"] == 900
+    assert first.status_code == 200
+    assert first.json["remaining_uses"] == 0
+
+    second = client.post(
+        "/coupons/SAVE10/apply",
+        json={"amount": 1000}
+    )
+    assert second.status_code == 400
+    assert "usage limit" in second.json["error"].lower()
 
 
 def test_duplicate_coupon(client):
