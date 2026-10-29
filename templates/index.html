@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coupon Studio | v1</title>
+    <title>CouponStudio | Version 2</title>
 
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -25,20 +27,65 @@
             align-items: center;
         }
 
-        .brand { font-size: 24px; font-weight: 800; }
-        .brand span { color: #a78bfa; }
+        .brand {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .brand span {
+            color: #a78bfa;
+        }
 
         .version {
             background: #38316f;
             padding: 9px 16px;
             border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
         }
 
-        main { max-width: 1050px; margin: 40px auto; padding: 0 20px; }
-        h1 { margin-bottom: 8px; }
-        .subtitle { color: #737b91; margin-bottom: 28px; }
+        main {
+            max-width: 1100px;
+            margin: 38px auto;
+            padding: 0 20px;
+        }
 
-        .grid {
+        h1 {
+            margin-bottom: 8px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #737b91;
+            margin-bottom: 28px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .feature {
+            background: white;
+            border: 1px solid #e5e8f0;
+            border-radius: 13px;
+            padding: 17px;
+        }
+
+        .feature strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .feature small {
+            color: #737b91;
+            line-height: 1.5;
+        }
+
+        .layout {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 22px;
@@ -50,58 +97,128 @@
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 8px 25px #11182708;
+            min-width: 0;
         }
 
-        h2 { font-size: 19px; margin-top: 0; }
-        .hint { color: #737b91; font-size: 14px; }
+        h2 {
+            font-size: 19px;
+            margin-top: 0;
+        }
+
+        .hint {
+            color: #737b91;
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
         label {
             display: block;
             font-size: 13px;
             font-weight: 700;
-            margin: 17px 0 7px;
+            margin: 16px 0 7px;
         }
 
         input {
+            display: block;
             width: 100%;
             padding: 12px;
             border: 1px solid #d8ddeb;
             border-radius: 9px;
-            font-size: 15px;
+            font-size: 14px;
+            background: white;
+            color: #192039;
         }
 
-        input:focus { outline: 2px solid #c4b5fd; }
+        input:focus {
+            outline: 2px solid #c4b5fd;
+            border-color: #8b5cf6;
+        }
 
         button {
-            padding: 12px 17px;
-            border: 0;
+            border: none;
+            padding: 12px 16px;
             border-radius: 9px;
             cursor: pointer;
             font-weight: 700;
-            margin-top: 16px;
+            font-size: 14px;
+            margin-top: 17px;
+            transition: opacity 0.2s;
         }
 
-        .primary { background: #6d4aff; color: white; }
-        .secondary { background: #ece8ff; color: #4d36ad; }
-        .buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+        button:hover {
+            opacity: 0.86;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .primary {
+            background: #6d4aff;
+            color: white;
+        }
+
+        .secondary {
+            background: #ece8ff;
+            color: #4d36ad;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-card {
+            margin-top: 22px;
+        }
 
         #result {
-            margin-top: 22px;
+            margin-top: 16px;
             padding: 16px;
             background: #f2efff;
             border-radius: 10px;
             white-space: pre-wrap;
             overflow-wrap: anywhere;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
         }
 
-        #result:empty { display: none; }
-        .full { margin-top: 22px; }
-        .status { color: #15803d; font-weight: 700; }
+        #result:empty {
+            display: none;
+        }
 
-        @media(max-width: 700px) {
-            .grid { grid-template-columns: 1fr; }
-            header { padding: 20px; }
-            main { margin-top: 25px; }
+        .empty {
+            color: #737b91;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px 15px;
+            color: #737b91;
+            font-size: 13px;
+        }
+
+        @media (max-width: 750px) {
+            header {
+                padding: 18px 20px;
+            }
+
+            main {
+                margin-top: 25px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .layout,
+            .features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -109,64 +226,141 @@
 <body>
 <header>
     <div class="brand">Coupon<span>Studio</span></div>
-    <div class="version">VERSION 1</div>
+    <div class="version">VERSION 2</div>
 </header>
 
 <main>
     <h1>Coupon Management</h1>
-    <p class="subtitle">Create, validate and apply discount coupons.</p>
+    <p class="subtitle">
+        Create, validate and apply coupons with enhanced eligibility rules.
+    </p>
 
-    <div class="grid">
-        <section class="card">
+    <section class="features">
+        <div class="feature">
+            <strong>＋ Coupon Creation</strong>
+            <small>Create percentage-based discount coupons.</small>
+        </div>
+
+        <div class="feature">
+            <strong>◷ Expiry Validation</strong>
+            <small>Reject coupons whose expiry date has passed.</small>
+        </div>
+
+        <div class="feature">
+            <strong>₹ Purchase Rules</strong>
+            <small>Enforce minimum purchase requirements.</small>
+        </div>
+    </section>
+
+    <section class="layout">
+        <div class="card">
             <h2>＋ Create Coupon</h2>
-            <p class="hint">Add a new percentage discount.</p>
+            <p class="hint">
+                Define the discount, minimum order amount and expiry date.
+            </p>
 
             <form id="createForm">
                 <label for="couponCode">Coupon code</label>
-                <input id="couponCode" placeholder="SAVE10"
-                       maxlength="40" required>
+                <input
+                    id="couponCode"
+                    type="text"
+                    placeholder="e.g. SAVE10"
+                    maxlength="40"
+                    required
+                >
 
-                <label for="discount">Discount percentage</label>
-                <input id="discount" type="number" min="0.01"
-                       max="100" step="0.01" placeholder="10" required>
+                <label for="discount">Discount percentage (%)</label>
+                <input
+                    id="discount"
+                    type="number"
+                    min="0.01"
+                    max="100"
+                    step="0.01"
+                    placeholder="10"
+                    required
+                >
 
-                <button class="primary" type="submit">Create Coupon</button>
+                <label for="minimum">Minimum purchase amount (₹)</label>
+                <input
+                    id="minimum"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="500"
+                    required
+                >
+
+                <label for="expiry">Expiry date (optional)</label>
+                <input
+                    id="expiry"
+                    type="date"
+                >
+
+                <button class="primary" type="submit">
+                    Create Coupon
+                </button>
             </form>
-        </section>
+        </div>
 
-        <section class="card">
+        <div class="card">
             <h2>₹ Apply Coupon</h2>
-            <p class="hint">Calculate your discounted purchase total.</p>
+            <p class="hint">
+                Validate coupon eligibility and calculate the final price.
+            </p>
 
             <label for="applyCode">Coupon code</label>
-            <input id="applyCode" placeholder="SAVE10" required>
+            <input
+                id="applyCode"
+                type="text"
+                placeholder="e.g. SAVE10"
+                maxlength="40"
+                required
+            >
 
             <label for="amount">Purchase amount (₹)</label>
-            <input id="amount" type="number" min="0.01"
-                   step="0.01" value="1000" required>
+            <input
+                id="amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value="1000"
+                required
+            >
 
             <div class="buttons">
                 <button class="primary" id="applyButton" type="button">
                     Apply Coupon
                 </button>
+
                 <button class="secondary" id="validateButton" type="button">
                     Validate Coupon
                 </button>
             </div>
-        </section>
-    </div>
+        </div>
+    </section>
 
-    <section class="card full">
+    <section class="card result-card">
         <h2>Operation Result</h2>
-        <p class="hint">Your coupon creation and validation results appear here.</p>
-        <div id="result" role="status" aria-live="polite"></div>
+        <p class="hint">
+            Coupon creation, validation and application responses appear here.
+        </p>
+
+        <div id="result" role="status" aria-live="polite">
+        </div>
     </section>
 </main>
+
+<footer>
+    CouponStudio · Version 2 · Flask Coupon Management System
+</footer>
 
 <script>
     const result = document.getElementById("result");
 
     async function sendRequest(url, options = {}) {
+        result.textContent = "Processing request...";
+        result.className = "";
+
         try {
             const response = await fetch(url, options);
             const data = await response.json();
@@ -174,39 +368,83 @@
             result.textContent = JSON.stringify(data, null, 2);
             result.style.background = response.ok ? "#ecfdf5" : "#fff1f2";
 
-            return response.ok;
+            return { ok: response.ok, data: data };
         } catch (error) {
             result.textContent =
-                "Unable to contact the server. Check whether Flask is running.";
+                "Unable to contact Flask. Make sure the application is running.";
             result.style.background = "#fff1f2";
-            return false;
+
+            return { ok: false, data: null };
         }
     }
 
+    // CREATE COUPON
     document.getElementById("createForm").addEventListener(
-        "submit", async function(event) {
+        "submit",
+        async function(event) {
             event.preventDefault();
 
             const code = document.getElementById("couponCode").value.trim();
             const discount = Number(
                 document.getElementById("discount").value
             );
+            const minimum = Number(
+                document.getElementById("minimum").value
+            );
+            const expiry = document.getElementById("expiry").value;
+
+            if (!code) {
+                result.textContent = "Enter a coupon code.";
+                return;
+            }
+
+            if (!Number.isFinite(discount) ||
+                discount <= 0 || discount > 100) {
+                result.textContent =
+                    "Discount must be greater than 0 and at most 100.";
+                return;
+            }
+
+            if (!Number.isFinite(minimum) || minimum < 0) {
+                result.textContent =
+                    "Minimum purchase amount cannot be negative.";
+                return;
+            }
+
+            const payload = {
+                code: code,
+                discount: discount,
+                minimum_amount: minimum,
+                expiry: expiry || null
+            };
 
             await sendRequest("/coupons", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code, discount })
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
             });
         }
     );
 
+    // APPLY COUPON
     document.getElementById("applyButton").addEventListener(
-        "click", async function() {
+        "click",
+        async function() {
             const code = document.getElementById("applyCode").value.trim();
-            const amount = Number(document.getElementById("amount").value);
+            const amount = Number(
+                document.getElementById("amount").value
+            );
 
-            if (!code || !Number.isFinite(amount) || amount <= 0) {
-                result.textContent = "Enter a coupon code and a positive amount.";
+            if (!code) {
+                result.textContent = "Enter a coupon code.";
+                return;
+            }
+
+            if (!Number.isFinite(amount) || amount <= 0) {
+                result.textContent =
+                    "Purchase amount must be greater than zero.";
                 return;
             }
 
@@ -214,15 +452,19 @@
                 "/coupons/" + encodeURIComponent(code) + "/apply",
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount })
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ amount: amount })
                 }
             );
         }
     );
 
+    // VALIDATE COUPON
     document.getElementById("validateButton").addEventListener(
-        "click", async function() {
+        "click",
+        async function() {
             const code = document.getElementById("applyCode").value.trim();
 
             if (!code) {
