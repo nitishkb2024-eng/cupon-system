@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Studio | v1</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f5fb;
+            color: #192039;
+        }
+
+        header {
+            background: #171b32;
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand { font-size: 24px; font-weight: 800; }
+        .brand span { color: #a78bfa; }
+
+        .version {
+            background: #38316f;
+            padding: 9px 16px;
+            border-radius: 30px;
+        }
+
+        main { max-width: 1050px; margin: 40px auto; padding: 0 20px; }
+        h1 { margin-bottom: 8px; }
+        .subtitle { color: #737b91; margin-bottom: 28px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 25px #11182708;
+        }
+
+        h2 { font-size: 19px; margin-top: 0; }
+        .hint { color: #737b91; font-size: 14px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin: 17px 0 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d8ddeb;
+            border-radius: 9px;
+            font-size: 15px;
+        }
+
+        input:focus { outline: 2px solid #c4b5fd; }
+
+        button {
+            padding: 12px 17px;
+            border: 0;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .primary { background: #6d4aff; color: white; }
+        .secondary { background: #ece8ff; color: #4d36ad; }
+        .buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+
+        #result {
+            margin-top: 22px;
+            padding: 16px;
+            background: #f2efff;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        #result:empty { display: none; }
+        .full { margin-top: 22px; }
+        .status { color: #15803d; font-weight: 700; }
+
+        @media(max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            header { padding: 20px; }
+            main { margin-top: 25px; }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="brand">Coupon<span>Studio</span></div>
+    <div class="version">VERSION 1</div>
+</header>
+
+<main>
+    <h1>Coupon Management</h1>
+    <p class="subtitle">Create, validate and apply discount coupons.</p>
+
+    <div class="grid">
+        <section class="card">
+            <h2>＋ Create Coupon</h2>
+            <p class="hint">Add a new percentage discount.</p>
+
+            <form id="createForm">
+                <label for="couponCode">Coupon code</label>
+                <input id="couponCode" placeholder="SAVE10"
+                       maxlength="40" required>
+
+                <label for="discount">Discount percentage</label>
+                <input id="discount" type="number" min="0.01"
+                       max="100" step="0.01" placeholder="10" required>
+
+                <button class="primary" type="submit">Create Coupon</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>₹ Apply Coupon</h2>
+            <p class="hint">Calculate your discounted purchase total.</p>
+
+            <label for="applyCode">Coupon code</label>
+            <input id="applyCode" placeholder="SAVE10" required>
+
+            <label for="amount">Purchase amount (₹)</label>
+            <input id="amount" type="number" min="0.01"
+                   step="0.01" value="1000" required>
+
+            <div class="buttons">
+                <button class="primary" id="applyButton" type="button">
+                    Apply Coupon
+                </button>
+                <button class="secondary" id="validateButton" type="button">
+                    Validate Coupon
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <section class="card full">
+        <h2>Operation Result</h2>
+        <p class="hint">Your coupon creation and validation results appear here.</p>
+        <div id="result" role="status" aria-live="polite"></div>
+    </section>
+</main>
+
+<script>
+    const result = document.getElementById("result");
+
+    async function sendRequest(url, options = {}) {
+        try {
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            result.textContent = JSON.stringify(data, null, 2);
+            result.style.background = response.ok ? "#ecfdf5" : "#fff1f2";
+
+            return response.ok;
+        } catch (error) {
+            result.textContent =
+                "Unable to contact the server. Check whether Flask is running.";
+            result.style.background = "#fff1f2";
+            return false;
+        }
+    }
+
+    document.getElementById("createForm").addEventListener(
+        "submit", async function(event) {
+            event.preventDefault();
+
+            const code = document.getElementById("couponCode").value.trim();
+            const discount = Number(
+                document.getElementById("discount").value
+            );
+
+            await sendRequest("/coupons", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, discount })
+            });
+        }
+    );
+
+    document.getElementById("applyButton").addEventListener(
+        "click", async function() {
+            const code = document.getElementById("applyCode").value.trim();
+            const amount = Number(document.getElementById("amount").value);
+
+            if (!code || !Number.isFinite(amount) || amount <= 0) {
+                result.textContent = "Enter a coupon code and a positive amount.";
+                return;
+            }
+
+            await sendRequest(
+                "/coupons/" + encodeURIComponent(code) + "/apply",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount })
+                }
+            );
+        }
+    );
+
+    document.getElementById("validateButton").addEventListener(
+        "click", async function() {
+            const code = document.getElementById("applyCode").value.trim();
+
+            if (!code) {
+                result.textContent = "Enter a coupon code to validate.";
+                return;
+            }
+
+            await sendRequest(
+                "/coupons/" + encodeURIComponent(code) + "/validate"
+            );
+        }
+    );
+</script>
+</body>
+</html>
